@@ -1,0 +1,107 @@
+
+############################  Search PATH ################################
+
+lappend search_path /home/IC/tsmc_fb_cl013g_sc/aci/sc-m/synopsys
+lappend search_path /home/IC/Projects/System/RTL/ALU
+lappend search_path /home/IC/Projects/System/RTL/ASYNC_FIFO
+lappend search_path /home/IC/Projects/System/RTL/CLOCK_DIV
+lappend search_path /home/IC/Projects/System/RTL/Clock_gating
+lappend search_path /home/IC/Projects/System/RTL/DATA_SYNC
+lappend search_path /home/IC/Projects/System/RTL/Prescale
+lappend search_path /home/IC/Projects/System/RTL/PULS_GEN
+lappend search_path /home/IC/Projects/System/RTL/REG_FILE
+lappend search_path /home/IC/Projects/System/RTL/RST_SYNC
+lappend search_path /home/IC/Projects/System/RTL/SYS_CTRL
+lappend search_path /home/IC/Projects/System/RTL/UART
+lappend search_path /home/IC/Projects/System/RTL
+
+
+########################### Define Top Module ############################
+                                                   
+set top_module SYS_TOP
+
+######################### Formality Setup File ###########################
+
+set synopsys_auto_setup true
+set verification_verify_directly_undriven_output false
+
+set_svf "/home/IC/Projects/System/Syn/$top_module.svf"
+
+
+set SSLIB "/home/IC/tsmc_fb_cl013g_sc/aci/sc-m/synopsys/scmetro_tsmc_cl013g_rvt_ss_1p08v_125c.db"
+set TTLIB "/home/IC/tsmc_fb_cl013g_sc/aci/sc-m/synopsys/scmetro_tsmc_cl013g_rvt_tt_1p2v_25c.db"
+set FFLIB "/home/IC/tsmc_fb_cl013g_sc/aci/sc-m/synopsys/scmetro_tsmc_cl013g_rvt_ff_1p32v_m40c.db"
+
+######################### Reference Container ############################
+
+## Read Reference Design Files
+read_verilog -container Ref "ALU.v"
+read_verilog -container Ref "ASYNC_FIFO.v"
+read_verilog -container Ref "bit_sync_r2w.v"
+read_verilog -container Ref "bit_sync_w2r.v"
+read_verilog -container Ref "FIFO_MEM_CNTRL.v"
+read_verilog -container Ref "FIFO_RD.v"
+read_verilog -container Ref "FIFO_WR.v"
+read_verilog -container Ref "CLK_DIV.v"
+read_verilog -container Ref "Clock_gating.v"
+read_verilog -container Ref "bit_sync.v"
+read_verilog -container Ref "puls_gen.v"
+read_verilog -container Ref "DATA_SYNC.v"
+read_verilog -container Ref "Prescale.v"
+read_verilog -container Ref "puls_gen.v"
+read_verilog -container Ref "Reg_File.v"
+read_verilog -container Ref "RST_SYNC.v"
+read_verilog -container Ref "SYS_CTRL.v"
+read_verilog -container Ref "data_sampling.v"
+read_verilog -container Ref "deserializer.v"
+read_verilog -container Ref "edge_bit_counter.v"
+read_verilog -container Ref "FSM_UART_RX.v"
+read_verilog -container Ref "FSM_UART_TX.v"
+read_verilog -container Ref "MUX.v"
+read_verilog -container Ref "Parity_Calc.v"
+read_verilog -container Ref "PARITY_CHECK.v"
+read_verilog -container Ref "serializer.v"
+read_verilog -container Ref "START_CHECK.v"
+read_verilog -container Ref "STOP_CHECK.v"
+read_verilog -container Ref "UART_RX.v"
+read_verilog -container Ref "UART_TX.v"
+read_verilog -container Ref "UART.v"
+read_verilog -container Ref "SYS_TOP.v"
+
+
+## Read Reference technology libraries
+read_db -container r $TTLIB
+
+## set the top Reference Design 
+set_reference_design SYS_TOP
+set_top $top_module
+
+######################## Implementation Container #########################
+
+## Read Implementation technology libraries
+read_db -container i $TTLIB
+
+## Read Implementation Design Files
+read_verilog -netlist -container imp "/home/IC/Projects/System/Syn/netlists/SYS_TOP.v"
+
+## set the top Implementation Design
+set_implementation_design SYS_TOP
+set_top SYS_TOP
+
+## matching Compare points
+match
+
+## verify
+set successful [verify]
+if {!$successful} {
+diagnose
+analyze_points -failing
+}
+
+report_passing_points > "reports/passing_points.rpt"
+report_failing_points > "reports/failing_points.rpt"
+report_aborted_points > "reports/aborted_points.rpt"
+report_unverified_points > "reports/unverified_points.rpt"
+
+
+start_gui
